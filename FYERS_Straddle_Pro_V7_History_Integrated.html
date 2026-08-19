@@ -1,0 +1,1634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<title>FYERS Straddle Pro V7</title>
+<style>
+:root{--bg:#07111f;--p:#0e1b2d;--line:#213653;--txt:#eff5ff;--muted:#8fa3bd;--blue:#4f7cff;--g:#35d39a;--r:#ff6675;--y:#f0c85b}
+*{box-sizing:border-box}html,body{margin:0;background:linear-gradient(180deg,#06101d,#091426);color:var(--txt);font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial}
+body{min-height:100vh}.wrap{max-width:1450px;margin:auto;padding:12px}
+.top{position:sticky;top:0;z-index:20;background:#07111fee;border-bottom:1px solid var(--line);backdrop-filter:blur(14px);padding:12px 0;margin-bottom:12px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px}.brand{font-size:20px;font-weight:850}.sub{font-size:11px;color:var(--muted);margin-top:2px}
+.status{font-size:11px;color:var(--muted);display:flex;gap:7px;align-items:center}.dot{width:9px;height:9px;border-radius:99px;background:#61718a}.dot.live{background:var(--g);box-shadow:0 0 14px #35d39977}.dot.err{background:var(--r)}.dot.warn{background:var(--y)}
+.panel,.k,.chartbox,.card{background:linear-gradient(180deg,#0f1d30,#0a1727);border:1px solid var(--line);border-radius:15px;box-shadow:0 12px 30px #0003}.panel,.card{padding:12px}.panel{margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr .8fr;gap:9px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+label{display:block;color:var(--muted);font-size:10px;margin:0 0 5px 2px}
+input,select,button{width:100%;min-height:40px;padding:9px;border-radius:9px;border:1px solid var(--line);background:#081425;color:var(--txt);font-size:13px}
+button{cursor:pointer}.primary{background:#3158c8;border-color:#4f75e3}.secondary{background:#112138}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:10px}.k{padding:11px}.kl{font-size:10px;color:var(--muted)}.kv{font-size:22px;font-weight:850;margin-top:4px}.ks{font-size:10px;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{width:auto;padding:9px 13px}.tab.active{background:#173b7e;border-color:#4c73d8}
+.main{display:grid;grid-template-columns:1.6fr .9fr;gap:10px}.chartbox{overflow:hidden}.charthead{display:flex;justify-content:space-between;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}.charttitle{font-weight:800}
+#chart{height:560px;position:relative;overflow:hidden;touch-action:none}#canvas{display:block;width:100%;height:100%}
+.side{display:flex;flex-direction:column;gap:10px}.card h3{font-size:12px;margin:0 0 9px}.legs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.leg{background:#091526;border:1px solid var(--line);border-radius:12px;padding:10px}.tag{font-size:10px;color:var(--muted)}.price{font-size:23px;font-weight:850;margin-top:3px}.small,.notice,.footer{font-size:10px;color:var(--muted);line-height:1.45}
+table{width:100%;border-collapse:collapse;font-size:11px}td{padding:6px;border-bottom:1px solid #1b2b42;text-align:right}td:first-child{text-align:left;color:var(--muted)}
+.errorbox{display:none;margin-top:8px;padding:9px;border:1px solid #713540;background:#35131a;color:#ffdfe3;border-radius:9px;font-size:11px;white-space:pre-wrap;word-break:break-word}
+.badge{display:inline-block;font-size:9px;border:1px solid var(--line);border-radius:999px;padding:3px 7px;color:var(--muted);margin-left:4px}
+.charttools{display:flex;gap:5px;align-items:center}.charttools button{width:auto;min-height:30px;padding:5px 8px;font-size:10px}.charttools button.active{background:#173b7e;border-color:#4c73d8}
+.progress{display:none;margin-top:8px;height:7px;background:#081425;border-radius:99px;overflow:hidden}.progress>div{height:100%;width:0;background:#4f7cff}
+@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:repeat(3,1fr)}.main{grid-template-columns:1fr}#chart{height:470px}}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.row3{grid-template-columns:1fr 1fr}.row4{grid-template-columns:1fr 1fr}#chart{height:390px}.charttools{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="head">
+<div><div class="brand">FYERS STRADDLE PRO V7</div><div class="sub">Live + persistent history • NIFTY + MCX</div></div>
+<div class="status"><span id="dot" class="dot"></span><span id="status">Not connected</span></div>
+</div></div>
+
+<div class="panel">
+<div class="grid">
+<div><label>FYERS App ID</label><input id="appId" autocomplete="off" placeholder="Your FYERS App ID"></div>
+<div><label>Realtime Relay WSS</label><input id="relayUrl" autocomplete="off"></div>
+<div><label>History D1 URL</label><input id="historyUrl" autocomplete="off"></div>
+<div><button class="primary" id="login">Login with FYERS</button></div>
+</div>
+<div class="notice" style="margin-top:8px">Live relay: Render Python/FYERS DataSocket. Historical archive: Cloudflare D1. No FYERS secret is entered in the browser.</div>
+<div class="errorbox" id="errorBox"></div>
+</div>
+
+<div class="panel">
+<div class="row4">
+<div><label>Timeframe</label><select id="tf">
+<option value="1">1 min</option><option value="3">3 min</option><option value="5" selected>5 min</option>
+<option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option>
+<option value="60">1 hour</option><option value="120">2 hour</option><option value="240">4 hour</option>
+<option value="D">Day</option><option value="W">Week</option><option value="M">Month</option>
+</select></div>
+<div><label>History range</label><select id="range">
+<option value="1d">1 day</option><option value="1w">1 week</option><option value="1m">1 month</option>
+<option value="3m">3 months</option><option value="6m">6 months</option><option value="1y" selected>1 year</option>
+<option value="2y">2 years</option><option value="5y">5 years</option><option value="max">MAX</option>
+</select></div>
+<div><label>Chart mode</label><select id="mode"><option value="sum">CE + PE</option><option value="diff">CE − PE</option><option value="ratio">CE / PE</option></select></div>
+<div><button class="secondary" id="syncHistory">Sync selected history</button></div>
+</div>
+<div class="progress" id="progress"><div id="progressBar"></div></div>
+<div class="notice" style="margin-top:8px">History sync is on-demand and chunked to stay free-tier friendly. Old expired option contracts may not be available from FYERS; missing data is left missing, never fabricated.</div>
+</div>
+
+<div class="kpis">
+<div class="k"><div class="kl">STRADDLE</div><div class="kv" id="sum">—</div><div class="ks" id="chg">—</div></div>
+<div class="k"><div class="kl">CALL LTP</div><div class="kv" id="ce">—</div><div class="ks" id="ces">—</div></div>
+<div class="k"><div class="kl">PUT LTP</div><div class="kv" id="pe">—</div><div class="ks" id="pes">—</div></div>
+<div class="k"><div class="kl">OPEN</div><div class="kv" id="op">—</div><div class="ks">current candle</div></div>
+<div class="k"><div class="kl">HIGH / LOW</div><div class="kv" id="hl">—</div><div class="ks">current candle</div></div>
+<div class="k"><div class="kl">UPDATED</div><div class="kv" id="updt">—</div><div class="ks">live relay</div></div>
+</div>
+
+<div class="tabs"><button class="tab active" id="tabN">NIFTY</button><button class="tab" id="tabM">MCX</button></div>
+
+<div class="main">
+<section class="chartbox">
+<div class="charthead">
+<div><div class="charttitle" id="chartTitle">NIFTY STRADDLE</div><div class="small"><span id="chartSub">CE + PE</span> <span class="badge" id="dataBadge">D1 history</span><span class="badge" id="storageBadge">Local 0</span></div></div>
+<div class="charttools"><button id="fit">FIT</button><button id="zoomIn">+</button><button id="zoomOut">−</button><button id="latest" class="active">LIVE</button></div>
+<div class="small" id="feedStatus">Waiting</div>
+</div>
+<div id="chart"><canvas id="canvas"></canvas><div id="tip" style="display:none;position:absolute;z-index:3;left:8px;top:8px;padding:8px 10px;border:1px solid #2b4263;border-radius:9px;background:#07111ff2;color:#eff5ff;font-size:11px;line-height:1.4;pointer-events:none;white-space:nowrap"></div></div>
+</section>
+
+<aside class="side">
+<div class="card">
+<h3 id="contractTitle">NIFTY CONTRACTS</h3>
+<div class="row">
+<div><label>Expiry</label><select id="expiry"></select></div>
+<div><label>Strike</label><select id="strike"></select></div>
+</div>
+<div class="row" style="margin-top:8px">
+<div><label>CALL</label><input id="ceSymbol" readonly></div>
+<div><label>PUT</label><input id="peSymbol" readonly></div>
+</div>
+<button class="primary" id="apply" style="margin-top:8px">Apply Legs + Load History</button>
+</div>
+
+<div class="card">
+<h3>LIVE LEGS</h3><div class="legs">
+<div class="leg"><div class="tag">CALL</div><div class="price" id="ce2">—</div><div class="small" id="ce2s">—</div></div>
+<div class="leg"><div class="tag">PUT</div><div class="price" id="pe2">—</div><div class="small" id="pe2s">—</div></div>
+</div></div>
+
+<div class="card">
+<h3>CURRENT CANDLE</h3>
+<table><tr><td>Open</td><td id="o">—</td></tr><tr><td>High</td><td id="h">—</td></tr><tr><td>Low</td><td id="l">—</td></tr><tr><td>Close</td><td id="c">—</td></tr><tr><td>Change</td><td id="cm">—</td></tr></table>
+</div>
+
+<div class="card" id="mcxCard" style="display:none">
+<h3>MCX CONTRACTS</h3>
+<label>Commodity root</label><input id="mcxUnderlying" value="GOLDM">
+<div class="row" style="margin-top:8px"><div><label>Expiry</label><select id="mcxExpiry"></select></div><div><label>Strike</label><select id="mcxStrike"></select></div></div>
+<div class="row" style="margin-top:8px"><div><label>CALL</label><input id="mcxCE" readonly></div><div><label>PUT</label><input id="mcxPE" readonly></div></div>
+<button class="secondary" id="applyM" style="margin-top:8px">Use MCX Legs</button>
+</div>
+</aside>
+</div>
+
+<div class="footer">
+Historical bars are genuine FYERS candles stored in D1. Synthetic straddle OHLC is built from synchronized CE + PE component candles; its historical high/low can differ from a true tick-synchronous spread high/low. Live candles use the Render FYERS DataSocket ticks.
+</div>
+</div>
+
+<script>
+"use strict";
+
+const DEFAULT_RELAY="wss://fyers-straddle-relay.onrender.com/ws";
+const DEFAULT_HISTORY="https://fyers-straddle-history.vinothtnp.workers.dev";
+const LOCAL_KEY="fyers_sp_v7";
+const MAX_LOCAL=20000;
+
+const S={
+  market:"NIFTY",
+  appId:"",
+  token:"",
+  last:{CE:null,PE:null},
+  bars:[],
+  localSamples:[],
+  relayWs:null,
+  relayReady:false,
+  reconnectTimer:null,
+  quoteTimer:null,
+  view:120,
+  drag:null,
+  holdTimer:null
+};
+
+const $=id=>document.getElementById(id);
+const REDIRECT=location.origin+location.pathname;
+
+$("relayUrl").value=localStorage.getItem("relay_url_v7")||DEFAULT_RELAY;
+$("historyUrl").value=localStorage.getItem("history_url_v7")||DEFAULT_HISTORY;
+
+function status(text,cls=""){
+  $("status").textContent=text;
+  $("feedStatus").textContent=text;
+  $("dot").className="dot "+cls;
+}
+function showError(text){
+  $("errorBox").style.display="block";
+  $("errorBox").textContent=text;
+}
+function clearError(){
+  $("errorBox").style.display="none";
+  $("errorBox").textContent="";
+}
+function fmt(v){return Number.isFinite(v)?Number(v).toFixed(2):"—"}
+function calc(a,b){
+  if(!Number.isFinite(a)||!Number.isFinite(b))return null;
+  const m=$("mode").value;
+  if(m==="diff")return a-b;
+  if(m==="ratio")return b?a/b:null;
+  return a+b;
+}
+function tfKey(){return $("tf").value}
+function bucket(ts,minutes){return Math.floor(ts/(minutes*60))*minutes*60}
+function saveSettings(){
+  localStorage.setItem("relay_url_v7",$("relayUrl").value.trim());
+  localStorage.setItem("history_url_v7",$("historyUrl").value.trim());
+}
+$("relayUrl").addEventListener("change",saveSettings);
+$("historyUrl").addEventListener("change",saveSettings);
+
+function setupKey(){
+  const ce=S.market==="NIFTY"?$("ceSymbol").value:$("mcxCE").value;
+  const pe=S.market==="NIFTY"?$("peSymbol").value:$("mcxPE").value;
+  return `${S.market}|${ce}|${pe}`;
+}
+function saveLocal(){
+  try{
+    const payload={
+      key:setupKey(),
+      samples:S.localSamples.slice(-MAX_LOCAL),
+      savedAt:Date.now()
+    };
+    localStorage.setItem(LOCAL_KEY,JSON.stringify(payload));
+    $("storageBadge").textContent=`Local ${payload.samples.length}`;
+  }catch{
+    $("storageBadge").textContent="Local full";
+  }
+}
+function loadLocal(){
+  try{
+    const x=JSON.parse(localStorage.getItem(LOCAL_KEY)||"{}");
+    if(x.key===setupKey()&&Array.isArray(x.samples)){
+      S.localSamples=x.samples.slice(-MAX_LOCAL);
+    }else{
+      S.localSamples=[];
+    }
+  }catch{
+    S.localSamples=[];
+  }
+  $("storageBadge").textContent=`Local ${S.localSamples.length}`;
+}
+
+function draw(){
+  const host=$("chart");
+  const canvas=$("canvas");
+  const r=host.getBoundingClientRect();
+  const d=window.devicePixelRatio||1;
+
+  canvas.width=Math.max(1,Math.floor(r.width*d));
+  canvas.height=Math.max(1,Math.floor(r.height*d));
+
+  const ctx=canvas.getContext("2d");
+  ctx.setTransform(d,0,0,d,0,0);
+  ctx.clearRect(0,0,r.width,r.height);
+
+  if(!S.bars.length){
+    ctx.fillStyle="#8fa3bd";
+    ctx.font="14px system-ui";
+    ctx.fillText("Choose CE + PE and load history",16,30);
+    return;
+  }
+
+  const pad={l:58,r:12,t:14,b:30};
+  const W=r.width,H=r.height;
+  const cw=W-pad.l-pad.r;
+  const ch=H-pad.t-pad.b;
+
+  const count=Math.max(20,Math.min(S.bars.length,Math.round(S.view)));
+  const start=Math.max(0,S.bars.length-count);
+  const v=S.bars.slice(start);
+
+  let lo=Math.min(...v.map(x=>x.low));
+  let hi=Math.max(...v.map(x=>x.high));
+
+  if(hi===lo){
+    hi+=1;
+    lo-=1;
+  }
+
+  const y=value=>pad.t+(hi-value)/(hi-lo)*ch;
+  const x=i=>pad.l+(i+.5)*cw/v.length;
+
+  ctx.strokeStyle="#16263d";
+  ctx.fillStyle="#8fa3bd";
+  ctx.font="10px system-ui";
+
+  for(let i=0;i<=5;i++){
+    const yy=pad.t+i*ch/5;
+    ctx.beginPath();
+    ctx.moveTo(pad.l,yy);
+    ctx.lineTo(W-pad.r,yy);
+    ctx.stroke();
+    ctx.fillText(
+      (hi-(hi-lo)*i/5).toFixed(2),
+      5,
+      yy+3
+    );
+  }
+
+  v.forEach((q,i)=>{
+    const xx=x(i);
+    const up=q.close>=q.open;
+
+    ctx.strokeStyle=up?"#35d39a":"#ff6675";
+    ctx.fillStyle=ctx.strokeStyle;
+
+    ctx.beginPath();
+    ctx.moveTo(xx,y(q.high));
+    ctx.lineTo(xx,y(q.low));
+    ctx.stroke();
+
+    const top=y(Math.max(q.open,q.close));
+    const bot=y(Math.min(q.open,q.close));
+
+    ctx.fillRect(
+      xx-3,
+      top,
+      6,
+      Math.max(1,bot-top)
+    );
+
+    if(i%Math.max(1,Math.floor(v.length/6))===0){
+      ctx.fillStyle="#8fa3bd";
+      ctx.fillText(
+        new Date(q.time*1000).toLocaleString([],{
+          day:"2-digit",
+          month:"2-digit",
+          hour:"2-digit",
+          minute:"2-digit"
+        }),
+        xx-28,
+        H-9
+      );
+    }
+  });
+
+  const last=v[v.length-1];
+
+  ctx.strokeStyle="#4f7cff";
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(pad.l,y(last.close));
+  ctx.lineTo(W-pad.r,y(last.close));
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function updateCandle(c){
+  if(!c)return;
+
+  $("sum").textContent=fmt(c.close);
+  $("op").textContent=fmt(c.open);
+  $("hl").textContent=fmt(c.high)+" / "+fmt(c.low);
+
+  $("o").textContent=fmt(c.open);
+  $("h").textContent=fmt(c.high);
+  $("l").textContent=fmt(c.low);
+  $("c").textContent=fmt(c.close);
+
+  const d=c.close-c.open;
+
+  $("cm").textContent=(d>=0?"+":"")+fmt(d);
+  $("chg").textContent=(d>=0?"▲ ":"▼ ")+Math.abs(d).toFixed(2);
+  $("cm").style.color=d>=0?"var(--g)":"var(--r)";
+}
+
+function makeSpreadBars(ceRows,peRows){
+  const peMap=new Map();
+
+  for(const row of peRows||[]){
+    if(Array.isArray(row)&&row.length>=5){
+      peMap.set(Number(row[0]),row);
+    }
+  }
+
+  const map=new Map();
+  const mode=$("mode").value;
+  const minutes=parseInt($("tf").value,10);
+
+  for(const ce of ceRows||[]){
+    if(!Array.isArray(ce)||ce.length<5)continue;
+
+    const ts=Number(ce[0]);
+    const pe=peMap.get(ts);
+
+    if(!pe)continue;
+
+    const vals=[
+      Number(ce[1])+Number(pe[1]),
+      Number(ce[2])+Number(pe[2]),
+      Number(ce[3])+Number(pe[3]),
+      Number(ce[4])+Number(pe[4])
+    ];
+
+    let open,high,low,close;
+
+    if(mode==="sum"){
+      [open,high,low,close]=vals;
+    }else if(mode==="diff"){
+      open=Number(ce[1])-Number(pe[1]);
+      high=Number(ce[2])-Number(pe[2]);
+      low=Number(ce[3])-Number(pe[3]);
+      close=Number(ce[4])-Number(pe[4]);
+    }else{
+      open=Number(pe[1])?Number(ce[1])/Number(pe[1]):null;
+      high=Number(pe[2])?Number(ce[2])/Number(pe[2]):null;
+      low=Number(pe[3])?Number(ce[3])/Number(pe[3]):null;
+      close=Number(pe[4])?Number(ce[4])/Number(pe[4]):null;
+    }
+
+    if([open,high,low,close].some(v=>!Number.isFinite(v)))continue;
+
+    const t=minutes?bucket(ts,minutes):ts;
+    let c=map.get(t);
+
+    if(!c){
+      c={time:t,open,high,low,close};
+      map.set(t,c);
+    }else{
+      c.high=Math.max(c.high,high);
+      c.low=Math.min(c.low,low);
+      c.close=close;
+    }
+  }
+
+  return [...map.values()].sort((a,b)=>a.time-b.time);
+}
+
+function makeSpreadBarsFromDb(ceRows,peRows){
+  const peMap=new Map();
+  for(const r of peRows||[]){
+    peMap.set(Number(r.ts),r);
+  }
+
+  const map=new Map();
+  const tf=$("tf").value;
+
+  for(const ce of ceRows||[]){
+    const pe=peMap.get(Number(ce.ts));
+    if(!pe)continue;
+
+    const oe=Number(ce.o),he=Number(ce.h),le=Number(ce.l),ceC=Number(ce.c);
+    const op=Number(pe.o),hp=Number(pe.h),lp=Number(pe.l),cp=Number(pe.c);
+
+    let open,high,low,close;
+
+    if($("mode").value==="sum"){
+      open=oe+op;
+      high=he+hp;
+      low=le+lp;
+      close=ceC+cp;
+    }else if($("mode").value==="diff"){
+      open=oe-op;
+      high=he-hp;
+      low=le-lp;
+      close=ceC-cp;
+    }else{
+      open=op?oe/op:null;
+      high=hp?he/hp:null;
+      low=lp?le/lp:null;
+      close=cp?ceC/cp:null;
+    }
+
+    if([open,high,low,close].some(v=>!Number.isFinite(v)))continue;
+
+    const t=aggregateBucket(Number(ce.ts),tf);
+    let c=map.get(t);
+
+    if(!c){
+      map.set(t,{time:t,open,high,low,close});
+    }else{
+      c.high=Math.max(c.high,high);
+      c.low=Math.min(c.low,low);
+      c.close=close;
+    }
+  }
+
+  return [...map.values()].sort((a,b)=>a.time-b.time);
+}
+
+function aggregateBucket(ts,tf){
+  const n=Number(tf);
+  if(Number.isFinite(n))return bucket(ts,n);
+  const d=new Date(ts*1000);
+
+  if(tf==="D"){
+    return Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate()
+    )/1000;
+  }
+
+  if(tf==="W"){
+    const day=d.getUTCDay()||7;
+    const x=new Date(Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate()-(day-1)
+    ));
+    return x.getTime()/1000;
+  }
+
+  if(tf==="M"){
+    return Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      1
+    )/1000;
+  }
+
+  return ts;
+}
+
+async function api(params){
+  const r=await fetch("/api/fyers?"+new URLSearchParams(params),{
+    cache:"no-store"
+  });
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok){
+    throw new Error(
+      data.error||data.message||`HTTP ${r.status}`
+    );
+  }
+  return data;
+}
+
+async function historyDb(params){
+  const base=$("historyUrl").value.trim().replace(/\/$/,"");
+  const r=await fetch(base+params.path,{
+    method:params.method||"GET",
+    headers:params.body?{"Content-Type":"application/json"}:{},
+    body:params.body?JSON.stringify(params.body):undefined,
+    cache:"no-store"
+  });
+
+  const data=await r.json().catch(()=>({}));
+
+  if(!r.ok){
+    throw new Error(
+      data.error||data.message||`History DB HTTP ${r.status}`
+    );
+  }
+
+  return data;
+}
+
+function rangeDates(){
+  const now=Date.now();
+  const map={
+    "1d":1,
+    "1w":7,
+    "1m":31,
+    "3m":93,
+    "6m":186,
+    "1y":365,
+    "2y":730,
+    "5y":1825
+  };
+
+  const key=$("range").value;
+
+  if(key==="max"){
+    return{
+      from:new Date(Date.UTC(2017,6,3)),
+      to:new Date(now)
+    };
+  }
+
+  const days=map[key]||365;
+  return{
+    from:new Date(now-days*86400000),
+    to:new Date(now)
+  };
+}
+
+function dateString(d){
+  return d.toISOString().slice(0,10);
+}
+
+async function loadDbCandles(){
+  const ce=S.market==="NIFTY"?$("ceSymbol").value:$("mcxCE").value;
+  const pe=S.market==="NIFTY"?$("peSymbol").value:$("mcxPE").value;
+
+  if(!ce||!pe)return false;
+
+  const range=rangeDates();
+  const from=Math.floor(range.from.getTime()/1000);
+  const to=Math.floor(range.to.getTime()/1000);
+
+  const tf=$("tf").value;
+
+  status("Loading saved history…","warn");
+
+  let ceData,peData;
+
+  try{
+    ceData=await historyDb({
+      path:"/candles?"+
+        new URLSearchParams({
+          series:ce,
+          timeframe:tf,
+          from,
+          to,
+          limit:"10000"
+        })
+    });
+
+    peData=await historyDb({
+      path:"/candles?"+
+        new URLSearchParams({
+          series:pe,
+          timeframe:tf,
+          from,
+          to,
+          limit:"10000"
+        })
+    });
+  }catch(e){
+    showError(e.message);
+    return false;
+  }
+
+  const cb=makeSpreadBarsFromDb(
+    ceData.candles||[],
+    peData.candles||[]
+  );
+
+  if(cb.length){
+    S.bars=cb;
+    $("dataBadge").textContent=`D1 ${cb.length} candles`;
+    if(cb.length)updateCandle(cb[cb.length-1]);
+    draw();
+    return true;
+  }
+
+  return false;
+}
+
+async function backfillOneSymbol(symbol,series,meta,from,to){
+  const start=new Date(from);
+  const end=new Date(to);
+
+  const type=$("tf").value;
+  const minuteLike=/^\d+$/.test(type);
+
+  const chunkDays=minuteLike?60:300;
+
+  let cursor=new Date(start);
+  let done=0;
+  const total=end-start;
+
+  while(cursor<end){
+    const chunkEnd=new Date(
+      Math.min(
+        cursor.getTime()+chunkDays*86400000,
+        end.getTime()
+      )
+    );
+
+    await historyDb({
+      path:"/history",
+      method:"POST",
+      body:{
+        appId:S.appId,
+        accessToken:S.token,
+        symbol,
+        resolution:type,
+        from:dateString(cursor),
+        to:dateString(chunkEnd),
+        series,
+        expiry:meta.expiry,
+        strike:meta.strike,
+        option_type:meta.option_type
+      }
+    });
+
+    cursor=new Date(
+      chunkEnd.getTime()+86400000
+    );
+
+    done=Math.min(1,(cursor-start)/total);
+    $("progressBar").style.width=(done*100).toFixed(1)+"%";
+
+    /*
+     * Small pause keeps repeated backfill requests
+     * friendly to free-tier limits.
+     */
+    await new Promise(r=>setTimeout(r,300));
+  }
+}
+
+async function syncHistory(){
+  clearError();
+
+  if(!S.token||!S.appId){
+    showError("Login with FYERS first.");
+    return;
+  }
+
+  const ce=S.market==="NIFTY"?$("ceSymbol").value:$("mcxCE").value;
+  const pe=S.market==="NIFTY"?$("peSymbol").value:$("mcxPE").value;
+
+  if(!ce||!pe){
+    showError("CE and PE symbols are required.");
+    return;
+  }
+
+  const range=rangeDates();
+
+  $("progress").style.display="block";
+  $("progressBar").style.width="0%";
+
+  try{
+    const expiry=S.market==="NIFTY"?$("expiry").value:$("mcxExpiry").value;
+    const strike=S.market==="NIFTY"?Number($("strike").value):Number($("mcxStrike").value);
+
+    status("Syncing CE history…","warn");
+
+    await backfillOneSymbol(
+      ce,
+      ce,
+      {
+        expiry,
+        strike,
+        option_type:"CE"
+      },
+      range.from,
+      range.to
+    );
+
+    status("Syncing PE history…","warn");
+
+    await backfillOneSymbol(
+      pe,
+      pe,
+      {
+        expiry,
+        strike,
+        option_type:"PE"
+      },
+      range.from,
+      range.to
+    );
+
+    $("progressBar").style.width="100%";
+
+    await loadDbCandles();
+
+    status("History synced","live");
+  }catch(e){
+    showError(
+      "History sync failed: "+e.message
+    );
+    status("History sync failed","err");
+  }finally{
+    setTimeout(()=>{
+      $("progress").style.display="none";
+    },800);
+  }
+}
+
+async function authFinish(){
+  const u=new URL(location.href);
+  const code=u.searchParams.get("auth_code");
+  const state=u.searchParams.get("state");
+
+  if(!code)return false;
+
+  const expected=sessionStorage.getItem("fyers_state");
+
+  if(
+    expected &&
+    state &&
+    expected!==state
+  ){
+    showError("FYERS login state mismatch.");
+    return true;
+  }
+
+  try{
+    status("Authorizing…","warn");
+
+    const x=await api({
+      action:"auth",
+      code
+    });
+
+    S.appId=x.appId;
+    S.token=x.accessToken;
+
+    sessionStorage.setItem(
+      "fyers_app_id",
+      S.appId
+    );
+
+    sessionStorage.setItem(
+      "fyers_access_token",
+      S.token
+    );
+
+    location.replace(REDIRECT);
+  }catch(e){
+    status("Authentication failed","err");
+    showError(e.message);
+  }
+
+  return true;
+}
+
+function login(){
+  saveSettings();
+  clearError();
+
+  const id=$("appId").value.trim();
+
+  if(!id){
+    showError("Enter FYERS App ID.");
+    return;
+  }
+
+  const state=
+    Math.random().toString(36).slice(2)+
+    Date.now().toString(36);
+
+  sessionStorage.setItem(
+    "fyers_state",
+    state
+  );
+
+  sessionStorage.setItem(
+    "fyers_app_id",
+    id
+  );
+
+  location.href=
+    "https://api-t1.fyers.in/api/v3/generate-authcode?"+
+    new URLSearchParams({
+      client_id:id,
+      redirect_uri:REDIRECT,
+      response_type:"code",
+      state
+    }).toString();
+}
+
+async function contracts(exchange,underlying,expiry="",strike=""){
+  return api({
+    action:"contracts",
+    exchange,
+    underlying,
+    expiry,
+    strike
+  });
+}
+
+async function fillSelectors(){
+  clearError();
+
+  const ex=
+    S.market==="NIFTY"
+      ?"NSE_FO"
+      :"MCX_COM";
+
+  const underlying=
+    S.market==="NIFTY"
+      ?"NIFTY"
+      :$("mcxUnderlying").value.trim()||"GOLDM";
+
+  const sel=
+    S.market==="NIFTY"
+      ?$("expiry")
+      :$("mcxExpiry");
+
+  const st=
+    S.market==="NIFTY"
+      ?$("strike")
+      :$("mcxStrike");
+
+  const x=
+    await contracts(ex,underlying);
+
+  sel.innerHTML="";
+  st.innerHTML="";
+
+  (x.expiries||[]).forEach(e=>{
+    sel.appendChild(new Option(e,e));
+  });
+
+  if(x.expiries?.length){
+    sel.value=x.expiries[0];
+  }
+
+  await refreshStrikes();
+}
+
+async function refreshStrikes(){
+  const ex=
+    S.market==="NIFTY"
+      ?"NSE_FO"
+      :"MCX_COM";
+
+  const underlying=
+    S.market==="NIFTY"
+      ?"NIFTY"
+      :$("mcxUnderlying").value.trim()||"GOLDM";
+
+  const exp=
+    S.market==="NIFTY"
+      ?$("expiry").value
+      :$("mcxExpiry").value;
+
+  const st=
+    S.market==="NIFTY"
+      ?$("strike")
+      :$("mcxStrike");
+
+  const x=
+    await contracts(
+      ex,
+      underlying,
+      exp,
+      ""
+    );
+
+  st.innerHTML="";
+
+  const arr=(x.strikes||[]).sort((a,b)=>a-b);
+
+  arr.forEach(v=>{
+    st.appendChild(new Option(v,v));
+  });
+
+  if(
+    S.market==="NIFTY" &&
+    arr.length
+  ){
+    const best=
+      arr.reduce(
+        (prev,current)=>
+          Math.abs(current-24200)<
+          Math.abs(prev-24200)
+            ?current
+            :prev,
+        arr[0]
+      );
+
+    st.value=String(best);
+  }
+
+  if(
+    S.market==="MCX" &&
+    arr.length
+  ){
+    st.value=String(arr[0]);
+  }
+
+  await refreshLegSymbols();
+}
+
+async function refreshLegSymbols(){
+  const ex=
+    S.market==="NIFTY"
+      ?"NSE_FO"
+      :"MCX_COM";
+
+  const underlying=
+    S.market==="NIFTY"
+      ?"NIFTY"
+      :$("mcxUnderlying").value.trim()||"GOLDM";
+
+  const exp=
+    S.market==="NIFTY"
+      ?$("expiry").value
+      :$("mcxExpiry").value;
+
+  const strike=
+    S.market==="NIFTY"
+      ?$("strike").value
+      :$("mcxStrike").value;
+
+  const x=
+    await contracts(
+      ex,
+      underlying,
+      exp,
+      strike
+    );
+
+  const ce=
+    (x.contracts||[]).find(
+      v=>v.optionType==="CE"
+    );
+
+  const pe=
+    (x.contracts||[]).find(
+      v=>v.optionType==="PE"
+    );
+
+  if(S.market==="NIFTY"){
+    $("ceSymbol").value=ce?.symbol||"";
+    $("peSymbol").value=pe?.symbol||"";
+  }else{
+    $("mcxCE").value=ce?.symbol||"";
+    $("mcxPE").value=pe?.symbol||"";
+  }
+}
+
+function closeRelay(){
+  if(S.reconnectTimer){
+    clearTimeout(S.reconnectTimer);
+    S.reconnectTimer=null;
+  }
+
+  if(S.relayWs){
+    try{S.relayWs.close()}catch{}
+  }
+
+  S.relayWs=null;
+  S.relayReady=false;
+}
+
+function scheduleRelay(){
+  if(
+    S.reconnectTimer ||
+    !S.token
+  )return;
+
+  S.reconnectTimer=setTimeout(()=>{
+    S.reconnectTimer=null;
+    connectRelay();
+  },3000);
+}
+
+function handleRelayMessage(msg){
+  if(!msg)return;
+
+  if(msg.type==="relay_status"){
+    if(msg.status==="connected"){
+      S.relayReady=true;
+      status("TICK LIVE • relay","live");
+    }else if(
+      msg.status==="error"||
+      msg.status==="fyers_disconnected"
+    ){
+      S.relayReady=false;
+      status("Relay error • fallback","err");
+      showError(msg.message||"Relay disconnected");
+    }
+
+    return;
+  }
+
+  if(msg.type==="tick"){
+    const symbol=msg.symbol;
+    const ltp=Number(msg.ltp);
+    const ts=
+      Number(msg.ts)||
+      Math.floor(Date.now()/1000);
+
+    if(
+      !symbol||
+      !Number.isFinite(ltp)
+    )return;
+
+    const ce=
+      S.market==="NIFTY"
+        ?$("ceSymbol").value
+        :$("mcxCE").value;
+
+    const pe=
+      S.market==="NIFTY"
+        ?$("peSymbol").value
+        :$("mcxPE").value;
+
+    if(symbol===ce)S.last.CE=ltp;
+    if(symbol===pe)S.last.PE=ltp;
+
+    if(
+      Number.isFinite(S.last.CE)&&
+      Number.isFinite(S.last.PE)
+    ){
+      const value=
+        calc(
+          S.last.CE,
+          S.last.PE
+        );
+
+      $("ce").textContent=fmt(S.last.CE);
+      $("pe").textContent=fmt(S.last.PE);
+      $("ce2").textContent=fmt(S.last.CE);
+      $("pe2").textContent=fmt(S.last.PE);
+
+      $("ces").textContent=ce;
+      $("pes").textContent=pe;
+      $("ce2s").textContent=ce;
+      $("pe2s").textContent=pe;
+
+      $("updt").textContent=
+        new Date(ts*1000)
+          .toLocaleTimeString();
+
+      addLive(value,ts);
+    }
+
+    return;
+  }
+
+  if(msg.type==="relay_error"){
+    S.relayReady=false;
+    status("Relay error • fallback","err");
+    showError(
+      msg.message||
+      "Realtime relay error"
+    );
+  }
+}
+
+function connectRelay(){
+  closeRelay();
+
+  saveSettings();
+
+  const url=
+    $("relayUrl").value.trim();
+
+  const ce=
+    S.market==="NIFTY"
+      ?$("ceSymbol").value
+      :$("mcxCE").value;
+
+  const pe=
+    S.market==="NIFTY"
+      ?$("peSymbol").value
+      :$("mcxPE").value;
+
+  if(!S.token||!S.appId){
+    status("Login required","err");
+    return;
+  }
+
+  if(!url){
+    status("Relay URL required","warn");
+    return;
+  }
+
+  if(
+    !/^wss:\/\//i.test(url)
+  ){
+    status("Invalid relay URL","err");
+    showError(
+      "Relay URL must start with wss://"
+    );
+    return;
+  }
+
+  if(!ce||!pe){
+    status("Select CE + PE","warn");
+    return;
+  }
+
+  try{
+    S.relayWs=
+      new WebSocket(url);
+  }catch(e){
+    status("Relay unavailable","err");
+    showError(e.message);
+    scheduleRelay();
+    return;
+  }
+
+  S.relayWs.onopen=()=>{
+    S.relayWs.send(
+      JSON.stringify({
+        action:"start",
+        appId:S.appId,
+        accessToken:S.token,
+        symbols:[ce,pe]
+      })
+    );
+
+    status(
+      "Connecting FYERS through relay…",
+      "warn"
+    );
+  };
+
+  S.relayWs.onmessage=e=>{
+    try{
+      handleRelayMessage(
+        JSON.parse(e.data)
+      );
+    }catch{}
+  };
+
+  S.relayWs.onerror=()=>{
+    S.relayReady=false;
+    status(
+      "Relay disconnected",
+      "warn"
+    );
+    scheduleRelay();
+  };
+
+  S.relayWs.onclose=()=>{
+    S.relayReady=false;
+
+    if(S.token){
+      status(
+        "Relay disconnected",
+        "warn"
+      );
+      scheduleRelay();
+    }
+  };
+}
+
+function addLive(value,ts){
+  if(!Number.isFinite(value))return;
+
+  S.localSamples.push({
+    t:ts,
+    v:value
+  });
+
+  if(S.localSamples.length>MAX_LOCAL){
+    S.localSamples=
+      S.localSamples.slice(-MAX_LOCAL);
+  }
+
+  const tf=$("tf").value;
+  const t=aggregateBucket(ts,tf);
+
+  let c=S.bars[S.bars.length-1];
+
+  if(
+    !c||
+    c.time!==t
+  ){
+    c={
+      time:t,
+      open:value,
+      high:value,
+      low:value,
+      close:value
+    };
+
+    S.bars.push(c);
+  }else{
+    c.high=Math.max(c.high,value);
+    c.low=Math.min(c.low,value);
+    c.close=value;
+  }
+
+  if(S.bars.length>10000){
+    S.bars.shift();
+  }
+
+  updateCandle(c);
+  draw();
+  saveLocal();
+}
+
+async function applyLegs(){
+  clearError();
+
+  localStorage.setItem(
+    "last_setup_v7",
+    JSON.stringify({
+      market:S.market,
+      ce:S.market==="NIFTY"
+        ?$("ceSymbol").value
+        :$("mcxCE").value,
+      pe:S.market==="NIFTY"
+        ?$("peSymbol").value
+        :$("mcxPE").value,
+      tf:$("tf").value,
+      mode:$("mode").value
+    })
+  );
+
+  loadLocal();
+
+  const loaded=
+    await loadDbCandles();
+
+  if(!loaded){
+    status(
+      "No saved history for this contract",
+      "warn"
+    );
+  }
+
+  connectRelay();
+}
+
+function market(m){
+  S.market=m;
+
+  $("tabN").classList.toggle(
+    "active",
+    m==="NIFTY"
+  );
+
+  $("tabM").classList.toggle(
+    "active",
+    m==="MCX"
+  );
+
+  $("chartTitle").textContent=
+    m+" STRADDLE";
+
+  $("contractTitle").textContent=
+    m+" CONTRACTS";
+
+  $("mcxCard").style.display=
+    m==="MCX"
+      ?"block"
+      :"none";
+
+  fillSelectors().catch(
+    e=>showError(e.message)
+  );
+}
+
+function showTip(index,x,y){
+  const q=S.bars[index];
+  if(!q)return;
+
+  const text=
+    new Date(q.time*1000)
+      .toLocaleString([],{
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+
+  const tip=$("tip");
+
+  tip.innerHTML=
+    `<b>${text}</b><br>`+
+    `O ${fmt(q.open)} &nbsp; `+
+    `H ${fmt(q.high)}<br>`+
+    `L ${fmt(q.low)} &nbsp; `+
+    `C ${fmt(q.close)}`;
+
+  tip.style.display="block";
+
+  const r=
+    $("chart").getBoundingClientRect();
+
+  tip.style.left=
+    Math.max(
+      6,
+      Math.min(
+        r.width-tip.offsetWidth-6,
+        x+10
+      )
+    )+"px";
+
+  tip.style.top=
+    Math.max(
+      6,
+      Math.min(
+        r.height-tip.offsetHeight-6,
+        y+10
+      )
+    )+"px";
+}
+
+function nearestIndex(clientX){
+  const r=
+    $("chart").getBoundingClientRect();
+
+  const count=
+    Math.max(
+      20,
+      Math.min(
+        S.bars.length,
+        Math.round(S.view)
+      )
+    );
+
+  const start=
+    Math.max(
+      0,
+      S.bars.length-count
+    );
+
+  const width=
+    Math.max(
+      1,
+      r.width-70
+    );
+
+  const local=
+    Math.max(
+      0,
+      Math.min(
+        count-1,
+        Math.floor(
+          (clientX-r.left-58)/
+          (width/count)
+        )
+      )
+    );
+
+  return Math.min(
+    S.bars.length-1,
+    start+local
+  );
+}
+
+$("chart").addEventListener(
+  "pointerdown",
+  e=>{
+    S.drag={
+      x:e.clientX,
+      y:e.clientY,
+      view:S.view,
+      moved:false
+    };
+
+    $("chart").setPointerCapture?.(
+      e.pointerId
+    );
+
+    S.holdTimer=
+      setTimeout(()=>{
+        if(
+          S.drag &&
+          !S.drag.moved &&
+          S.bars.length
+        ){
+          const i=
+            nearestIndex(
+              e.clientX
+            );
+
+          showTip(
+            i,
+            e.clientX-
+              $("chart")
+                .getBoundingClientRect()
+                .left,
+            e.clientY-
+              $("chart")
+                .getBoundingClientRect()
+                .top
+          );
+        }
+      },550);
+  }
+);
+
+$("chart").addEventListener(
+  "pointermove",
+  e=>{
+    if(!S.drag)return;
+
+    const dx=
+      e.clientX-S.drag.x;
+
+    const dy=
+      e.clientY-S.drag.y;
+
+    if(
+      Math.abs(dx)>8||
+      Math.abs(dy)>8
+    ){
+      S.drag.moved=true;
+
+      if(S.holdTimer){
+        clearTimeout(
+          S.holdTimer
+        );
+        S.holdTimer=null;
+      }
+    }
+
+    const next=
+      Math.max(
+        20,
+        Math.min(
+          S.bars.length||1000,
+          Math.round(
+            S.drag.view*
+            (1+dx/500)
+          )
+        )
+      );
+
+    S.view=next;
+    draw();
+  }
+);
+
+$("chart").addEventListener(
+  "pointerup",
+  ()=>{
+    if(S.holdTimer){
+      clearTimeout(
+        S.holdTimer
+      );
+      S.holdTimer=null;
+    }
+    S.drag=null;
+  }
+);
+
+$("chart").addEventListener(
+  "pointercancel",
+  ()=>{
+    if(S.holdTimer){
+      clearTimeout(
+        S.holdTimer
+      );
+      S.holdTimer=null;
+    }
+    S.drag=null;
+  }
+);
+
+$("chart").addEventListener(
+  "click",
+  ()=>{
+    $("tip").style.display="none";
+  }
+);
+
+$("fit").onclick=()=>{
+  S.view=120;
+  draw();
+};
+
+$("zoomIn").onclick=()=>{
+  S.view=
+    Math.max(
+      20,
+      S.view/1.5
+    );
+  draw();
+};
+
+$("zoomOut").onclick=()=>{
+  S.view=
+    Math.min(
+      S.bars.length||10000,
+      S.view*1.5
+    );
+  draw();
+};
+
+$("latest").onclick=()=>{
+  S.view=120;
+  draw();
+};
+
+$("login").onclick=login;
+$("syncHistory").onclick=syncHistory;
+$("apply").onclick=applyLegs;
+
+$("tabN").onclick=()=>{
+  market("NIFTY");
+};
+
+$("tabM").onclick=()=>{
+  market("MCX");
+};
+
+$("expiry").onchange=
+  refreshStrikes;
+
+$("strike").onchange=
+  refreshLegSymbols;
+
+$("mcxExpiry").onchange=
+  refreshStrikes;
+
+$("mcxStrike").onchange=
+  refreshLegSymbols;
+
+$("mcxUnderlying").onchange=
+  fillSelectors;
+
+$("tf").onchange=async()=>{
+  const loaded=
+    await loadDbCandles();
+
+  if(!loaded){
+    draw();
+  }
+};
+
+$("mode").onchange=async()=>{
+  await loadDbCandles();
+};
+
+window.addEventListener(
+  "resize",
+  draw
+);
+
+(async()=>{
+  try{
+    const setup=
+      JSON.parse(
+        localStorage.getItem(
+          "last_setup_v7"
+        )||"{}"
+      );
+
+    if(setup.market){
+      S.market=setup.market;
+    }
+  }catch{}
+
+  $("appId").value=
+    sessionStorage.getItem(
+      "fyers_app_id"
+    )||"";
+
+  S.appId=
+    sessionStorage.getItem(
+      "fyers_app_id"
+    )||"";
+
+  S.token=
+    sessionStorage.getItem(
+      "fyers_access_token"
+    )||"";
+
+  if(await authFinish())return;
+
+  draw();
+
+  try{
+    await market(
+      S.market
+    );
+
+    if(S.token){
+      await applyLegs();
+    }
+  }catch(e){
+    showError(e.message);
+  }
+})();
+</script>
+</body>
+</html>
